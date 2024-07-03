@@ -17,10 +17,10 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
 
 // Task Model
 const taskSchema = new mongoose.Schema({
-  text: String,
-  completed: Boolean,
-  day: String,
-  priority: String
+  text: { type: String, required: true },
+  completed: { type: Boolean, default: false },
+  day: { type: String, required: true },
+  priority: { type: String, enum: ['high', 'medium', 'low'], default: 'medium' }
 });
 
 const Task = mongoose.model('Task', taskSchema);
@@ -31,6 +31,9 @@ const Task = mongoose.model('Task', taskSchema);
 app.get('/api/tasks', async (req, res) => {
   try {
     const { day } = req.query;
+    if (!day) {
+      return res.status(400).json({ message: 'Day parameter is required' });
+    }
     const tasks = await Task.find({ day });
     res.json(tasks);
   } catch (error) {
@@ -41,7 +44,11 @@ app.get('/api/tasks', async (req, res) => {
 // Add task
 app.post('/api/tasks', async (req, res) => {
   try {
-    const newTask = new Task(req.body);
+    const { text, day, priority } = req.body;
+    if (!text || !day) {
+      return res.status(400).json({ message: 'Text and day are required fields' });
+    }
+    const newTask = new Task({ text, day, priority });
     const savedTask = await newTask.save();
     res.status(201).json(savedTask);
   } catch (error) {
@@ -50,9 +57,18 @@ app.post('/api/tasks', async (req, res) => {
 });
 
 // Update task
-app.patch('/api/tasks/:id', async (req, res) => {
+app.put('/api/tasks/:id', async (req, res) => {
   try {
-    const updatedTask = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const { id } = req.params;
+    const { text, completed, priority } = req.body;
+    const updatedTask = await Task.findByIdAndUpdate(
+      id,
+      { text, completed, priority },
+      { new: true, runValidators: true }
+    );
+    if (!updatedTask) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
     res.json(updatedTask);
   } catch (error) {
     res.status(400).json({ message: 'Error updating task', error: error.message });
@@ -62,8 +78,12 @@ app.patch('/api/tasks/:id', async (req, res) => {
 // Delete task
 app.delete('/api/tasks/:id', async (req, res) => {
   try {
-    await Task.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Task deleted successfully' });
+    const { id } = req.params;
+    const deletedTask = await Task.findByIdAndDelete(id);
+    if (!deletedTask) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+    res.json({ message: 'Task deleted successfully', taskId: id });
   } catch (error) {
     res.status(400).json({ message: 'Error deleting task', error: error.message });
   }
@@ -72,9 +92,11 @@ app.delete('/api/tasks/:id', async (req, res) => {
 // Workday submission
 app.post('/api/workday', async (req, res) => {
   try {
-    // Here you would typically save the workday data to a separate collection
-    // For simplicity, we'll just log it and send a success response
-    console.log('Workday submitted:', req.body);
+    const { hoursWorked, day } = req.body;
+    if (!hoursWorked || !day) {
+      return res.status(400).json({ message: 'Hours worked and day are required fields' });
+    }
+    console.log('Workday submitted:', { hoursWorked, day });
     res.json({ message: 'Workday submitted successfully' });
   } catch (error) {
     res.status(400).json({ message: 'Error submitting workday', error: error.message });
@@ -83,3 +105,24 @@ app.post('/api/workday', async (req, res) => {
 
 // Start server
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// const initialTasks = [
+//   { id: 1, text: "Crm - לקרוא את ההתכתבות עם טל כדי להבין מה המצב מבחינת הרשמה שלב ב' בcrm.", completed: false, day: "רביעי", priority: "medium" },
+//   { id: 2, text: "Crm - לקרוא את הקובץ מייל שצירפתי להתכתבות עם טל, מייל קבלה לשלב ב'. – לכתוב אם יש לך ההערות או שהתוכן בסדר מבחינתך.", completed: false, day: "רביעי", priority: "high" },
+//   { id: 3, text: "Crm - לקרוא את הקובץ מייל שטל צירף להתכתבות, מייל דחייה. – לכתוב אם יש לך הערות או שהתוכן בסדר מבחינתך.", completed: false, day: "רביעי", priority: "high" },
+//   { id: 4, text: "Crm - על בסיס קובץ מייל הדחייה, להכין מייל שמודיע על רשימת המתנה/ קבלה על בסיס מקום פנוי. להתבסס כמה שיותר על התוכן הקיים רק עם שינוי המסר לרשימת המתנה במקום דחייה.", completed: false, day: "חמישי", priority: "medium" },
+//   { id: 5, text: "לבדוק בטופס מנחים אם עידו ואוריאל כבר נרשמו.", completed: false, day: "חמישי", priority: "low" },
+//   { id: 6, text: "וואטסאפ – לבדוק איך לקדם את זה. במייל האחרון בנושא הפנו אותנו לכתוב למישהי שאולי תדעי לעזור. אפשר גם להתייעץ עם חגית.", completed: false, day: "חמישי", priority: "medium" },
+//   { id: 7, text: "חשד להעתקה- לעבור על התלמידים שחשדנו, ולחפש הצלבות. (אם אתה רוצה, לא כדאי להשקיע בזה יותר מדי זמן. גג שעה)", completed: false, day: "חמישי", priority: "low" },
+//   { id: 8, text: "Moodle - לדבר עם מורן – במהלך הסופש היתה בעיה במודל, ועכשיו הוא חזר. אז היא בעיקר היתה סביב זה. להבין ממנה האם היא הספיקה לעשות משהו בהקשר של התכנית.", completed: false, day: "חמישי", priority: "high" },
+//   { id: 9, text: "Moodle - לשאול אותה אם אנחנו יכולים להוסיף פגישות יוניקו כמו של כימיה ברשת.", completed: false, day: "חמישי", priority: "medium" },
+//   { id: 10, text: "Moodle - אם מורן כבר פתחה אתר חדש לשלב ב', להתחיל להטמיע את הדברים שאפיינת שבוע שעבר.", completed: false, day: "חמישי", priority: "high" },
+// ];
+
+// initialTasks.forEach(async (task) => {
+//   try {
+//     const newTask = new Task(task);
+//     await newTask.save();
+//   } catch (error) {
+//     console.error('Error saving task:', error.message);
+//   }
+// });

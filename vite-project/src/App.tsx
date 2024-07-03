@@ -5,7 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { log } from 'console';
+import './App.css';
+
 
 const API_URL = 'http://localhost:5000/api'; // Replace with your actual API URL
 
@@ -42,7 +43,7 @@ const App = () => {
       const response = await fetch(`${API_URL}/tasks/${id}`, {
         method: 'PUT', // שינוי מ-PATCH ל-PUT
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           completed: !task.completed,
           text: task.text,
           priority: task.priority
@@ -100,7 +101,7 @@ const App = () => {
 
   const deleteTask = async (id) => {
     try {
-      console.log('deleteTask', id);  
+      console.log('deleteTask', id);
       const response = await fetch(`${API_URL}/tasks/${id}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Network response was not ok');
       await fetchTasks();
@@ -169,16 +170,16 @@ const App = () => {
   return (
     <div className="max-w-4xl mx-auto p-4 bg-gray-100 min-h-screen">
       <h1 className="text-3xl font-bold text-center mb-6">ניהול משימות</h1>
-      
+
       <div className="mb-4 flex justify-center space-x-4">
-        <Button 
-          onClick={() => setSelectedDay('רביעי')} 
+        <Button
+          onClick={() => setSelectedDay('רביעי')}
           variant={selectedDay === 'רביעי' ? 'default' : 'outline'}
         >
           רביעי
         </Button>
-        <Button 
-          onClick={() => setSelectedDay('חמישי')} 
+        <Button
+          onClick={() => setSelectedDay('חמישי')}
           variant={selectedDay === 'חמישי' ? 'default' : 'outline'}
         >
           חמישי

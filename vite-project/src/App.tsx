@@ -185,7 +185,26 @@ const App = () => {
     <div className="max-w-4xl mx-auto p-4 bg-gray-100 min-h-screen">
       <h1 className="text-3xl font-bold text-center mb-6">ניהול משימות</h1>
 
-      <div className="mb-4 flex justify-center space-x-4">
+      <div className="mb-4 flex justify-center ">
+
+        <Button
+          onClick={() => setSelectedDay('ראשון')}
+          variant={selectedDay === 'ראשון' ? 'default' : 'outline'}
+        >
+          ראשון
+        </Button>
+        <Button
+          onClick={() => setSelectedDay('שני')}
+          variant={selectedDay === 'שני' ? 'default' : 'outline'}
+        >
+          שני
+        </Button>
+        <Button
+          onClick={() => setSelectedDay('שלישי')}
+          variant={selectedDay === 'שלישי' ? 'default' : 'outline'}
+        >
+          שלישי
+        </Button>
         <Button
           onClick={() => setSelectedDay('רביעי')}
           variant={selectedDay === 'רביעי' ? 'default' : 'outline'}

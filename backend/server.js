@@ -2,6 +2,10 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
+const XLSX = require('xlsx');
+const path = require('path');
+const fs = require('fs');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -9,6 +13,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use('/exports', express.static('exports')); // S
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -89,19 +94,85 @@ app.delete('/api/tasks/:id', async (req, res) => {
   }
 });
 
-// Workday submission
+// // Workday submission
+// app.post('/api/workday', async (req, res) => {
+//   try {
+//     const { hoursWorked, day } = req.body;
+//     if (!hoursWorked || !day) {
+//       return res.status(400).json({ message: 'Hours worked and day are required fields' });
+//     }
+//     console.log('Workday submitted:', { hoursWorked, day });
+//     res.json({ message: 'Workday submitted successfully' });
+//   } catch (error) {
+//     res.status(400).json({ message: 'Error submitting workday', error: error.message });
+//   }
+// });
+
 app.post('/api/workday', async (req, res) => {
   try {
     const { hoursWorked, day } = req.body;
     if (!hoursWorked || !day) {
       return res.status(400).json({ message: 'Hours worked and day are required fields' });
     }
+
+    // Fetch tasks for the day
+    const tasks = await Task.find({ day });
+
+    // Generate progress report
+    const completedTasks = tasks.filter(task => task.completed).length;
+    const totalTasks = tasks.length;
+
+    // Create Excel file
+    const excelFilePath = await createExcelReport(day, hoursWorked, tasks, completedTasks, totalTasks);
+
     console.log('Workday submitted:', { hoursWorked, day });
-    res.json({ message: 'Workday submitted successfully' });
+    res.json({ 
+      message: 'Workday submitted successfully and Excel file created',
+      excelFilePath: excelFilePath.replace('exports', '/exports') // Convert to URL path
+    });
   } catch (error) {
     res.status(400).json({ message: 'Error submitting workday', error: error.message });
   }
 });
+
+// Function to create Excel report
+async function createExcelReport(day, hoursWorked, tasks, completedTasks, totalTasks) {
+  const workbook = XLSX.utils.book_new();
+  
+  // Summary sheet
+  const summaryData = [
+    ['יום עבודה', day],
+    ['שעות עבודה', hoursWorked],
+    ['משימות שהושלמו', `${completedTasks}/${totalTasks}`]
+  ];
+  const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+  XLSX.utils.book_append_sheet(workbook, summarySheet, 'סיכום');
+
+  // Tasks sheet
+  const tasksData = tasks.map(task => [
+    task.text,
+    task.completed ? 'הושלם' : 'לא הושלם',
+    task.priority
+  ]);
+  tasksData.unshift(['משימה', 'סטטוס', 'עדיפות']); // Add header row
+  const tasksSheet = XLSX.utils.aoa_to_sheet(tasksData);
+  XLSX.utils.book_append_sheet(workbook, tasksSheet, 'משימות');
+
+  // Ensure exports directory exists
+  const exportsDir = path.join(__dirname, 'exports');
+  if (!fs.existsSync(exportsDir)){
+    fs.mkdirSync(exportsDir);
+  }
+
+  // Generate unique filename
+  const fileName = `progress_report_${day}_${Date.now()}.xlsx`;
+  const filePath = path.join(exportsDir, fileName);
+
+  // Write to file
+  XLSX.writeFile(workbook, filePath);
+
+  return filePath;
+}
 
 // Start server
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

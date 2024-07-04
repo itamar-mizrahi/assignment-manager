@@ -10,6 +10,7 @@ dist/
 # Ignore environment variables file
 .env
 
+exports
 # Ignore IDE and editor specific files
 .vscode/
 .idea/

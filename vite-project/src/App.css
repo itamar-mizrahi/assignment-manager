@@ -45,3 +45,7 @@
 body>* {
   direction: rtl;
 }
+
+Button {
+  min-width: 100px;
+}

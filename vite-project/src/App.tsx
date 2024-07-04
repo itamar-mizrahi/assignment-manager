@@ -67,13 +67,27 @@ const App = () => {
         body: JSON.stringify({ hoursWorked, day: selectedDay })
       });
       if (!response.ok) throw new Error('Network response was not ok');
-      showAlertMessage('יום העבודה עודכן בהצלחה');
+      const data = await response.json();
+      showAlertMessage(data.message);
+      
+      // Add this part to display download link
+      if (data.excelFilePath) {
+        const downloadLink = document.createElement('a');
+        downloadLink.href = data.excelFilePath;
+        downloadLink.download = 'progress_report.xlsx';
+        downloadLink.innerHTML = 'הורד דו"ח אקסל';
+        downloadLink.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4';
+        
+        const container = document.querySelector('form');
+        if (container) {
+          container.appendChild(downloadLink);
+        }
+      }
     } catch (error) {
       console.error('Error submitting workday:', error);
       showAlertMessage('שגיאה בשליחת נתוני יום העבודה');
     }
   };
-
   const addTask = async () => {
     if (newTaskText.trim()) {
       try {

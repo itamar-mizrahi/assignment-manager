@@ -20,7 +20,7 @@ const App = () => {
   const [newTaskText, setNewTaskText] = useState('');
   const [newTaskPriority, setNewTaskPriority] = useState('medium');
   const [sortBy, setSortBy] = useState('id');
-
+//TODO:change sort
   useEffect(() => {
     fetchTasks();
   }, [selectedDay]);

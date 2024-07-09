@@ -30,6 +30,8 @@ jobs:
       - run: |
           touch .env
           echo MONGODB_URI: ${{ secrets.MONGODB_URI }} >> .env
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
       - run: npm install
       - run: node server.js
 

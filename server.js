@@ -15,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 app.use('/exports', express.static('exports')); // S
 // app.use('/test', express.static('test')); // S
-app.use('/assets', express.static('../assets')); // S
+app.use('/assets', express.static('assets')); // S
 app.use('/', express.static('dist')); // S
 
 // Connect to MongoDB

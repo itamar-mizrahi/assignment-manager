@@ -128,7 +128,7 @@ app.post('/api/workday', async (req, res) => {
     // Create Excel file
     const excelFilePath = await createExcelReport(day, hoursWorked, tasks, completedTasks, totalTasks);
 
-    console.log('Workday submitted:', { hoursWorked, day });
+    // console.log('Workday submitted:', { hoursWorked, day });
     res.json({ 
       message: 'Workday submitted successfully and Excel file created',
       excelFilePath: excelFilePath.replace('exports', '/exports') // Convert to URL path
@@ -171,6 +171,7 @@ async function createExcelReport(day, hoursWorked, tasks, completedTasks, totalT
   const fileName = `progress_report_${day}_${Date.now()}.xlsx`;
   const filePath = path.join(exportsDir, fileName);
   console.log(fileName);
+  console.log(filePath);
   // Write to file
   XLSX.writeFile(workbook, filePath);
 

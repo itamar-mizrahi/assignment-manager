@@ -73,7 +73,7 @@ const App = () => {
       // Add this part to display download link
       if (data.excelFilePath) {
         const downloadLink = document.createElement('a');
-        downloadLink.href = data.excelFilePath;
+        downloadLink.href = 'http://localhost:5000/exports/'+data.excelFilePath;
         downloadLink.download = 'progress_report.xlsx';
         downloadLink.innerHTML = 'הורד דו"ח אקסל';
         downloadLink.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4';

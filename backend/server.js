@@ -170,11 +170,11 @@ async function createExcelReport(day, hoursWorked, tasks, completedTasks, totalT
   // Generate unique filename
   const fileName = `progress_report_${day}_${Date.now()}.xlsx`;
   const filePath = path.join(exportsDir, fileName);
-
+  console.log(fileName);
   // Write to file
   XLSX.writeFile(workbook, filePath);
 
-  return filePath;
+  return fileName;
 }
 
 // Start server

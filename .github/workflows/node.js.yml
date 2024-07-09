@@ -21,10 +21,10 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
+      - uses: actions/checkout@v4
       - run: |
           touch .env
           echo MONGODB_URI: ${{ secrets.MONGODB_URI }} >> .env
-      - uses: actions/checkout@v4
       - run: npm install
       - run: node server.js
       - name: Use Node.js ${{ matrix.node-version }}

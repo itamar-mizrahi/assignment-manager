@@ -5,24 +5,26 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    environment: 
-      name: mongo
-        # MONGODB_URI: ${{ secrets.MONGODB_URI }}
-
+    environment:
+      name:
+        mongo
+        
     strategy:
       matrix:
-        node-version: [18.x] 
+        node-version: [18.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
+      run: |
+          touch .env
+          echo MONGODB_URI: ${{ secrets.MONGODB_URI }} >> .env
       - uses: actions/checkout@v4
       - run: npm install
       - run: node server.js
@@ -30,8 +32,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-        
+          cache: "npm"
+
     # - run: npm ci
     # - run: npm run build --if-present
     # - run: npm test

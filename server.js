@@ -19,7 +19,7 @@ app.use('/assets', express.static('assets')); // S
 app.use('/', express.static('dist')); // S
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGODB_URI||'mongodb+srv://theitamarmizrahi:123456Aa@tasks.m5i0bys.mongodb.net/?retryWrites=true&w=majority&appName=tasks', { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 

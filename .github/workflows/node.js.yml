@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: 
       name: mongo
-      url: ${{ env.MONGO_URL }}
+      url: https://github.com
 
     strategy:
       matrix:

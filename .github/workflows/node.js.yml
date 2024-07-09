@@ -21,7 +21,7 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-      run: |
+      - run: |
           touch .env
           echo MONGODB_URI: ${{ secrets.MONGODB_URI }} >> .env
       - uses: actions/checkout@v4

@@ -14,6 +14,9 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 app.use('/exports', express.static('exports')); // S
+// app.use('/test', express.static('test')); // S
+app.use('/assets', express.static('../assets')); // S
+app.use('/dist', express.static('dist')); // S
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })

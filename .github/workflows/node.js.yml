@@ -33,7 +33,11 @@ jobs:
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
       - run: npm install
-  
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
       - run: node server.js
 
     # - run: npm ci

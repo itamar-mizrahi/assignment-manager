@@ -26,7 +26,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
       - run: |
           touch .env
           echo MONGODB_URI: ${{ secrets.MONGODB_URI }} >> .env

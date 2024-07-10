@@ -36,6 +36,7 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v4
+      - run: npm install
       - run: node server.js
 
     # - run: npm ci

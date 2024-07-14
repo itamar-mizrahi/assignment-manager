@@ -26,3 +26,4 @@ yarn.lock
 # Ignore any other generated files or directories
 build/
 coverage/
+.aider*

@@ -5,6 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import './App.css';
+
 
 const API_URL = 'http://localhost:5000/api'; // Replace with your actual API URL
 
@@ -12,12 +14,13 @@ const App = () => {
   const [tasks, setTasks] = useState([]);
   const [hoursWorked, setHoursWorked] = useState('');
   const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
   const [selectedDay, setSelectedDay] = useState('רביעי');
   const [editingTask, setEditingTask] = useState(null);
   const [newTaskText, setNewTaskText] = useState('');
   const [newTaskPriority, setNewTaskPriority] = useState('medium');
   const [sortBy, setSortBy] = useState('id');
-
+//TODO:change sort
   useEffect(() => {
     fetchTasks();
   }, [selectedDay]);
@@ -30,21 +33,28 @@ const App = () => {
       setTasks(data);
     } catch (error) {
       console.error('Error fetching tasks:', error);
+      showAlertMessage('שגיאה בטעינת המשימות');
     }
   };
 
   const toggleTask = async (id) => {
     try {
-      const task = tasks.find(t => t.id === id);
+      const task = tasks.find(t => t._id === id);
       const response = await fetch(`${API_URL}/tasks/${id}`, {
-        method: 'PATCH',
+        method: 'PUT', // שינוי מ-PATCH ל-PUT
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ completed: !task.completed })
+        body: JSON.stringify({
+          completed: !task.completed,
+          text: task.text,
+          priority: task.priority
+        })
       });
       if (!response.ok) throw new Error('Network response was not ok');
-      fetchTasks();
+      await fetchTasks();
+      showAlertMessage('המשימה עודכנה בהצלחה');
     } catch (error) {
       console.error('Error toggling task:', error);
+      showAlertMessage('שגיאה בעדכון המשימה');
     }
   };
 
@@ -57,13 +67,27 @@ const App = () => {
         body: JSON.stringify({ hoursWorked, day: selectedDay })
       });
       if (!response.ok) throw new Error('Network response was not ok');
-      setShowAlert(true);
-      setTimeout(() => setShowAlert(false), 3000);
+      const data = await response.json();
+      showAlertMessage(data.message);
+      
+      // Add this part to display download link
+      if (data.excelFilePath) {
+        const downloadLink = document.createElement('a');
+        downloadLink.href = 'http://localhost:5000/exports/'+data.excelFilePath;
+        downloadLink.download = 'progress_report.xlsx';
+        downloadLink.innerHTML = 'הורד דו"ח אקסל';
+        downloadLink.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4';
+        
+        const container = document.querySelector('form');
+        if (container) {
+          container.appendChild(downloadLink);
+        }
+      }
     } catch (error) {
       console.error('Error submitting workday:', error);
+      showAlertMessage('שגיאה בשליחת נתוני יום העבודה');
     }
   };
-
   const addTask = async () => {
     if (newTaskText.trim()) {
       try {
@@ -78,22 +102,27 @@ const App = () => {
           })
         });
         if (!response.ok) throw new Error('Network response was not ok');
-        fetchTasks();
+        await fetchTasks();
         setNewTaskText('');
         setNewTaskPriority('medium');
+        showAlertMessage('המשימה נוספה בהצלחה');
       } catch (error) {
         console.error('Error adding task:', error);
+        showAlertMessage('שגיאה בהוספת המשימה');
       }
     }
   };
 
   const deleteTask = async (id) => {
     try {
+      console.log('deleteTask', id);
       const response = await fetch(`${API_URL}/tasks/${id}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Network response was not ok');
-      fetchTasks();
+      await fetchTasks();
+      showAlertMessage('המשימה נמחקה בהצלחה');
     } catch (error) {
       console.error('Error deleting task:', error);
+      showAlertMessage('שגיאה במחיקת המשימה');
     }
   };
 
@@ -104,9 +133,9 @@ const App = () => {
   };
 
   const saveEdit = async () => {
-    if (newTaskText.trim()) {
+    if (newTaskText.trim() && editingTask) {
       try {
-        const response = await fetch(`${API_URL}/tasks/${editingTask.id}`, {
+        const response = await fetch(`${API_URL}/tasks/${editingTask._id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -115,12 +144,14 @@ const App = () => {
           })
         });
         if (!response.ok) throw new Error('Network response was not ok');
-        fetchTasks();
+        await fetchTasks();
         setEditingTask(null);
         setNewTaskText('');
         setNewTaskPriority('medium');
+        showAlertMessage('המשימה עודכנה בהצלחה');
       } catch (error) {
         console.error('Error editing task:', error);
+        showAlertMessage('שגיאה בעדכון המשימה');
       }
     }
   };
@@ -144,19 +175,44 @@ const App = () => {
     }
   };
 
+  const showAlertMessage = (message) => {
+    setAlertMessage(message);
+    setShowAlert(true);
+    setTimeout(() => setShowAlert(false), 3000);
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-4 bg-gray-100 min-h-screen">
       <h1 className="text-3xl font-bold text-center mb-6">ניהול משימות</h1>
-      
-      <div className="mb-4 flex justify-center space-x-4">
-        <Button 
-          onClick={() => setSelectedDay('רביעי')} 
+
+      <div className="mb-4 flex justify-center ">
+
+        <Button
+          onClick={() => setSelectedDay('ראשון')}
+          variant={selectedDay === 'ראשון' ? 'default' : 'outline'}
+        >
+          ראשון
+        </Button>
+        <Button
+          onClick={() => setSelectedDay('שני')}
+          variant={selectedDay === 'שני' ? 'default' : 'outline'}
+        >
+          שני
+        </Button>
+        <Button
+          onClick={() => setSelectedDay('שלישי')}
+          variant={selectedDay === 'שלישי' ? 'default' : 'outline'}
+        >
+          שלישי
+        </Button>
+        <Button
+          onClick={() => setSelectedDay('רביעי')}
           variant={selectedDay === 'רביעי' ? 'default' : 'outline'}
         >
           רביעי
         </Button>
-        <Button 
-          onClick={() => setSelectedDay('חמישי')} 
+        <Button
+          onClick={() => setSelectedDay('חמישי')}
           variant={selectedDay === 'חמישי' ? 'default' : 'outline'}
         >
           חמישי
@@ -181,7 +237,7 @@ const App = () => {
             <input
               type="checkbox"
               checked={task.completed}
-              onChange={() => toggleTask(task.id)}
+              onChange={() => toggleTask(task._id)}
               className="mr-4 h-5 w-5 text-blue-600"
             />
             <div className="flex-grow">
@@ -195,7 +251,7 @@ const App = () => {
             <Button variant="ghost" size="icon" onClick={() => startEditing(task)}>
               <Edit className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => deleteTask(task.id)}>
+            <Button variant="ghost" size="icon" onClick={() => deleteTask(task._id)}>
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
@@ -248,9 +304,9 @@ const App = () => {
       {showAlert && (
         <Alert className="mt-4">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>הצלחה!</AlertTitle>
+          <AlertTitle>הודעה</AlertTitle>
           <AlertDescription>
-            הנתונים נשלחו בהצלחה. תודה על עבודתך היום!
+            {alertMessage}
           </AlertDescription>
         </Alert>
       )}
